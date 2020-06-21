@@ -19,6 +19,10 @@ export class Bug extends BaseEntity {
   @Column()
   name: string;
 
+  @Field()
+  @Column()
+  published: boolean;
+
   @OneToMany(() => Pet, (p) => p.bugs)
   pet?: Pet;
 }

@@ -9,6 +9,7 @@ import {
 import { ObjectType, InputType, Field } from "graphql-composer-decorators";
 import { User } from "./User";
 import { Bug } from "./Bug";
+import { N } from "graphql-composer";
 
 @ObjectType()
 @InputType("PetInput")
@@ -24,7 +25,7 @@ export class Pet extends BaseEntity {
   @OneToMany(() => User, (p) => p.pets)
   user?: User;
 
-  @Field(() => [Bug])
+  @Field(() => N([Bug]))
   @ManyToOne(() => Bug, (p) => p.pet)
   bugs?: Bug[];
 }

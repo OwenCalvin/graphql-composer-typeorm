@@ -4,6 +4,7 @@ import {
   InputType,
   NullableType,
   InputFieldType,
+  RequiredType,
 } from "graphql-composer";
 import { MetadataStorage } from "graphql-composer-decorators";
 import { createQueryBuilder, getMetadataArgsStorage } from "typeorm";
@@ -74,9 +75,9 @@ export class Parser<Type extends ClassType> {
           const value = object[key];
           if (inputType instanceof InputType) {
             const field = inputType.fields.find((f) => f.name === key);
-            const type = this.unwrapModifiedType(field.type);
+            const type = Parser.unwrapModifiedType(field.type);
+            const propName = `${parent}.${key}`;
             if (type instanceof InputType) {
-              const propName = `${parent}.${key}`;
               switch (type.name) {
                 case "StringArgument":
                   const strArg = value as StringArgument;
@@ -115,6 +116,10 @@ export class Parser<Type extends ClassType> {
                   }
                   return;
               }
+            } else {
+              query.andWhere(`${propName} = :${key}`, {
+                [key]: value,
+              });
             }
             parseWhere(value, type, `${parent}_${key}`);
           }
@@ -180,7 +185,7 @@ export class Parser<Type extends ClassType> {
 
               const field = args.fields.find((f) => f.name === key);
               if (field) {
-                const t = this.unwrapModifiedType(field.type);
+                const t = Parser.unwrapModifiedType(field.type);
                 parse(obj[key], t, relationName);
               }
             }
@@ -238,10 +243,13 @@ export class Parser<Type extends ClassType> {
     return relations;
   }
 
-  private unwrapModifiedType<T = any>(fieldType: T) {
+  static unwrapModifiedType<T = any>(fieldType: T) {
     let type: any = fieldType;
 
     if (type instanceof NullableType) {
+      type = type.type as InputType;
+    }
+    if (type instanceof RequiredType) {
       type = type.type as InputType;
     }
     if (Array.isArray(type)) {

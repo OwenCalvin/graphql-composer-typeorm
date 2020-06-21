@@ -19,3 +19,47 @@ GraphQL comes to revolutionize backend development, the fact that you have to de
 # graphql-composer
 The `graphql-composer-decorators` module is broken down into two modules instead of making one heavier, `graphql-composer` simply provides a compositing API which allows you to create an API using the builder design pattern and compositing.
 > Documentation for this module will be available soon.
+
+# graphql-composer-typeorm
+This solution offers a way to create advanced queries with TypeORM and graphql-composer-decorators
+
+# `ArgsFactory`
+This class allows to generate complex arguments from a class, the arguments will be generated in order to be able to specify several parameters for certain types:
+
+## `string`
+### `eq`
+strictly equal value
+### `like`
+expression value
+
+## `number`
+### `eq`
+strictly equal value
+### `gt`
+strictly higher value
+### `gte`
+greater or equal value
+### `lt`
+strictly speaking, smaller value
+### `lte`
+lesser or equal value
+
+# `Parser`
+This class allows you to generate the SQL query via your arguments:
+
+# Example
+```ts
+const args = ArgsFactory.create(User)
+
+@Resolver()
+class Resolver {
+  @Query()
+  query(
+    Args(args) args: KeyValue,
+    ctx: Context
+  ): Response {
+    const query = parser.buildQuery(ctx);
+    return query.getMany();
+  }
+}
+```

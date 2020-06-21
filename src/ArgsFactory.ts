@@ -9,6 +9,7 @@ import {
   GQLAnyType,
   KeyValue,
 } from "graphql-composer";
+import { Parser } from "./Parser";
 
 export enum Orders {
   ASC = "ASC",
@@ -68,10 +69,11 @@ export class ArgsFactory<T> {
   protected constructor() {}
 
   private static convertFieldIntoArgField(field: InputField) {
-    const newField = InputField.create(field.name, field.type);
-    const fieldType = field.type;
+    const isArray = Array.isArray(field.type);
+    const newField = InputField.create(field.name, N(field.type));
+    const type = Parser.unwrapModifiedType(field.type);
 
-    switch (fieldType) {
+    switch (type) {
       case String:
         newField.setType(N(ArgsFactory.stringArgument));
         break;
@@ -80,14 +82,6 @@ export class ArgsFactory<T> {
         break;
     }
 
-    let type: InputType = fieldType as InputType;
-
-    if (type instanceof NullableType) {
-      type = type.type as InputType;
-    }
-    if (Array.isArray(type)) {
-      type = type[0] as InputType;
-    }
     if (type instanceof InputType) {
       const t = ArgsFactory._types.find((t) => t[0].name === type.name);
       if (t) {
@@ -99,6 +93,10 @@ export class ArgsFactory<T> {
         );
         newField.setType(N(argsType));
       }
+    }
+
+    if (isArray) {
+      newField.setType(N([newField.type]));
     }
 
     return newField;
